@@ -79,6 +79,14 @@ class DHBW_eLearningWebView: DHViewController, WKNavigationDelegate {
     override func viewWillAppear(_ animated: Bool) {
         Stundenplan.setbutton(self)
     }
+    @IBAction func settings() {
+        let nav = UINavigationController(rootViewController: UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "settingsmain") as! SettingsMain)
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            nav.modalTransitionStyle = UIModalTransitionStyle.coverVertical
+            nav.modalPresentationStyle = UIModalPresentationStyle.formSheet
+        }
+        self.present(nav, animated: true, completion: nil)
+    }
     #endif
     func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
         decisionHandler(.allow)
