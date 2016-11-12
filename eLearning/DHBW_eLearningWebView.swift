@@ -68,13 +68,16 @@ class DHBW_eLearningWebView: DHViewController, WKNavigationDelegate {
     }
     #if os(iOS)
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-    UIApplication.shared.isNetworkActivityIndicatorVisible = false
-    let alert = UIAlertController(title: "Fehler".localized, message: error.localizedDescription, preferredStyle: .alert)
-    alert.addAction(UIAlertAction(title: "Verstanden".localized, style: .default, handler: nil))
-    self.present(alert, animated: true, completion: nil)
+        UIApplication.shared.isNetworkActivityIndicatorVisible = false
+        let alert = UIAlertController(title: "Fehler".localized, message: error.localizedDescription, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Verstanden".localized, style: .default, handler: nil))
+        self.present(alert, animated: true, completion: nil)
     }
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-    UIApplication.shared.isNetworkActivityIndicatorVisible = true
+        UIApplication.shared.isNetworkActivityIndicatorVisible = true
+    }
+    override func viewWillAppear(_ animated: Bool) {
+        Stundenplan.setbutton(self)
     }
     #endif
     func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
