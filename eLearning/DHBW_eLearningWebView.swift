@@ -69,9 +69,7 @@ class DHBW_eLearningWebView: DHViewController, WKNavigationDelegate {
     #if os(iOS)
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         UIApplication.shared.isNetworkActivityIndicatorVisible = false
-        let alert = UIAlertController(title: "Fehler".localized, message: error.localizedDescription, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Verstanden".localized, style: .default, handler: nil))
-        self.present(alert, animated: true, completion: nil)
+        DHErrorPresenter.add(viewController: self, error: error)
     }
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
@@ -146,8 +144,7 @@ class DHBW_eLearningWebView: DHViewController, WKNavigationDelegate {
                             self.present(prevcontroller, animated: true, completion: nil)
                         }
                     } else if let error = response.error {
-                        let alert = UIAlertController(title: "Fehler".localized, message: error.localizedDescription, preferredStyle: .alert)
-                        alert.addAction(UIAlertAction(title: "Verstanden".localized, style: .default, handler: nil))
+                        DHErrorPresenter.add(viewController: self, error: error)
                     }
                 #elseif os(macOS)
                     DispatchQueue.main.async {
