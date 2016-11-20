@@ -35,6 +35,8 @@ class DHBW_eLearningWebView: DHViewController, WKNavigationDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        registerForPreviewing(with: BarButtonSettings.shared(controller: navigationController), sourceView: navigationController!.navigationBar)
+        
         webView = WKWebView(frame: view.frame, configuration: configuration)
         // Alamofire.Manager.sharedInstance.session.configuration
         webView.frame = view.frame
@@ -75,15 +77,7 @@ class DHBW_eLearningWebView: DHViewController, WKNavigationDelegate {
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
     }
     override func viewWillAppear(_ animated: Bool) {
-        Stundenplan.setbutton(self)
-    }
-    @IBAction func settings() {
-        let nav = UINavigationController(rootViewController: UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "settingsmain") as! SettingsMain)
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            nav.modalTransitionStyle = UIModalTransitionStyle.coverVertical
-            nav.modalPresentationStyle = UIModalPresentationStyle.formSheet
-        }
-        self.present(nav, animated: true, completion: nil)
+        BarButtonSettings.shared(controller: navigationController).setbutton(self)
     }
     #endif
     func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
