@@ -35,7 +35,9 @@ class DHBW_eLearningWebView: DHViewController, WKNavigationDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        registerForPreviewing(with: BarButtonSettings.shared(controller: navigationController), sourceView: navigationController!.navigationBar)
+        #if os(iOS)
+            registerForPreviewing(with: BarButtonSettings.shared(controller: navigationController), sourceView: navigationController!.navigationBar)
+        #endif
         
         webView = WKWebView(frame: view.frame, configuration: configuration)
         // Alamofire.Manager.sharedInstance.session.configuration
