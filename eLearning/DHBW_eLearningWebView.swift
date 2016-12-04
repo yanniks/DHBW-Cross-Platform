@@ -181,14 +181,25 @@ class DHBW_eLearningWebView: DHViewController, WKNavigationDelegate {
             navigationTitle = webView.title
         }
         if webView.url?.absoluteString == "https://saml.dhbw-stuttgart.de/idp/Authn/UserPassword" {
-            
-            let js = "$('j_username').value = '"
-                + SharedSettings.shared.lehreUsernameWithMail.replacingOccurrences(of: "'", with: "\\'")
-                + "';document.getElementsByName('j_password')[0].value = '"
-                + SharedSettings.shared.lehrePassword.replacingOccurrences(of: "'", with: "\\'")
-                + "';$('login').submit();"
-            
-            webView.evaluateJavaScript(js, completionHandler: nil)
+            webView.evaluateJavaScript("document.documentElement.outerHTML.toString()", completionHandler: { (response, error) -> Void in
+                guard let response = response else {
+                    return
+                }
+                guard let html = response as? String else {
+                    return
+                }
+                if html.range(of: "DHBW-Lehre-eMail-Adresse oder Passwort falsch.") != nil {
+                    DHErrorPresenter.add(viewController: self, error: "Der Benutzername oder das Passwort ist falsch.".localized)
+                    return
+                }
+                let js = "$('j_username').value = '"
+                    + SharedSettings.shared.lehreUsernameWithMail.replacingOccurrences(of: "'", with: "\\'")
+                    + "';document.getElementsByName('j_password')[0].value = '"
+                    + SharedSettings.shared.lehrePassword.replacingOccurrences(of: "'", with: "\\'")
+                    + "';$('login').submit();"
+                
+                webView.evaluateJavaScript(js, completionHandler: nil)
+            })
         } else if webView.url?.absoluteString.range(of: "https://elearning.dhbw-stuttgart.de/") != nil && !authenticated {
             authenticated = true
         } else if webView.url?.absoluteString.range(of: "https://saml.dhbw-stuttgart.de/") != nil && authenticated {
