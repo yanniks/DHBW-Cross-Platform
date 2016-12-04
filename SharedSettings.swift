@@ -79,7 +79,7 @@ class SharedSettings {
     public var lehreUsernameWithMail : String {
         set (newVal) {
             _lehreUsername = newVal.replacingOccurrences(of: "@lehre.dhbw-stuttgart.de", with: "")
-            def.set(newVal.replacingOccurrences(of: "@lehre.dhbw-stuttgart.de", with: ""), forKey: DHBWPrivateSettingsKeys.lehreUsername.rawValue)
+            _keychain.set(newVal.replacingOccurrences(of: "@lehre.dhbw-stuttgart.de", with: ""), forKey: DHBWPrivateSettingsKeys.lehreUsername.rawValue)
         }
         get {
             return _lehreUsername + "@lehre.dhbw-stuttgart.de"
