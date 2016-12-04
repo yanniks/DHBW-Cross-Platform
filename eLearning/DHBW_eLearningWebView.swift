@@ -182,10 +182,7 @@ class DHBW_eLearningWebView: DHViewController, WKNavigationDelegate {
         }
         if webView.url?.absoluteString == "https://saml.dhbw-stuttgart.de/idp/Authn/UserPassword" {
             webView.evaluateJavaScript("document.documentElement.outerHTML.toString()", completionHandler: { (response, error) -> Void in
-                guard let response = response else {
-                    return
-                }
-                guard let html = response as? String else {
+                guard let response = response, let html = response as? String else {
                     return
                 }
                 if html.range(of: "DHBW-Lehre-eMail-Adresse oder Passwort falsch.") != nil {
