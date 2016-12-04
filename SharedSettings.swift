@@ -9,6 +9,7 @@
 //
 
 import Foundation
+import KeychainSwift
 
 enum DHBWSettingsKeys : String {
     case mailBadgeValue = "DHBW_mailBadgeValue"
@@ -34,13 +35,15 @@ class SharedSettings {
     private var _samlLoginUrl = "https://saml.dhbw-stuttgart.de/idp/Authn/UserPassword"
     private var _ownCloudServerUrl = "https://owncloud.dhbw-stuttgart.de"
     
+    private var _keychain = KeychainSwift()
+    
     /**
      Returns the username without email, used for ownCloud authentication
      */
     public var lehreUsername : String {
         set (newVal) {
             _lehreUsername = newVal
-            def.set(newVal, forKey: DHBWPrivateSettingsKeys.lehreUsername.rawValue)
+            _keychain.set(newVal, forKey: DHBWPrivateSettingsKeys.lehreUsername.rawValue)
         }
         get {
             return _lehreUsername
@@ -88,7 +91,7 @@ class SharedSettings {
     public var lehrePassword : String {
         set (newVal) {
             _lehrePassword = newVal
-            def.set(newVal, forKey: DHBWPrivateSettingsKeys.lehrePassword.rawValue)
+            _keychain.set(newVal, forKey: DHBWPrivateSettingsKeys.lehrePassword.rawValue)
         }
         get {
             return _lehrePassword
@@ -156,10 +159,11 @@ class SharedSettings {
     }
     
     private init() {
-        if let lu = def.string(forKey: DHBWPrivateSettingsKeys.lehreUsername.rawValue) {
+        _keychain.synchronizable = true
+        if let lu = _keychain.get(DHBWPrivateSettingsKeys.lehreUsername.rawValue) {
             _lehreUsername = lu
         }
-        if let lp = def.string(forKey: DHBWPrivateSettingsKeys.lehrePassword.rawValue) {
+        if let lp = _keychain.get(DHBWPrivateSettingsKeys.lehrePassword.rawValue) {
             _lehrePassword = lp
         }
         if let ms = def.string(forKey: DHBWPrivateSettingsKeys.mailServerUrl.rawValue) {
