@@ -81,7 +81,18 @@ class DHBW_eLearningWebView: DHViewController, WKNavigationDelegate {
     override func viewWillAppear(_ animated: Bool) {
         BarButtonSettings.shared(controller: navigationController).setbutton(self)
     }
+    #elseif os(macOS)
+    override func viewDidAppear() {
+        super.viewDidAppear()
+        NotificationCenter.default.addObserver(self, selector: #selector(DHBW_eLearningWebView.reload), name: NSNotification.Name(rawValue: DHMacMenuNotification.refresh.rawValue), object: nil)
+    }
+    override func viewDidDisappear() {
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: DHMacMenuNotification.refresh.rawValue), object: nil)
+    }
     #endif
+    func reload() {
+        webView.reload()
+    }
     func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
         decisionHandler(.allow)
         guard let response = navigationResponse.response as? HTTPURLResponse else {
