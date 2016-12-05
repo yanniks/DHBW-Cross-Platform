@@ -34,7 +34,7 @@ class dhbwSetup {
         }
     }
     static func validateCredentials(username: String, password: String, callback : @escaping ((CredentialValidationError?) -> Void)) {
-        if username.length <= 24 {
+        if username.characters.count <= 24 {
             callback(.invalidUsername)
             return
         }
