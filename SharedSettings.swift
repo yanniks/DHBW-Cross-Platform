@@ -95,9 +95,10 @@ class SharedSettings {
             return _lehreUsername + "@lehre.dhbw-stuttgart.de"
         }
     }
+    #if os(iOS)
     /**
     Returns the users image stored on Moodle
-     */
+    */
     public var userImage : UIImage? {
         set (newVal) {
             _userImage = newVal
@@ -111,6 +112,24 @@ class SharedSettings {
             return _userImage
         }
     }
+    #elseif os(macOS)
+    /**
+     Returns the users image stored on Moodle
+     */
+    public var userImage : NSImage? {
+        set (newVal) {
+            _userImage = newVal
+            if let newVal = newVal {
+                def.set(newVal.tiffRepresentation, forKey: DHBWPrivateSettingsKeys.userImage.rawValue)
+            } else {
+                def.removeObject(forKey: DHBWPrivateSettingsKeys.userImage.rawValue)
+            }
+        }
+        get {
+            return _userImage
+        }
+    }
+    #endif
     /**
      Returns the password used for SAML / ownCloud authentication
      */
@@ -208,7 +227,11 @@ class SharedSettings {
             _samlLoginUrl = sl
         }
         if let ui = def.object(forKey: DHBWPrivateSettingsKeys.userImage.rawValue) as? Data {
-            _userImage = UIImage(data: ui)
+            #if os(iOS)
+                _userImage = UIImage(data: ui)
+            #elseif os(macOS)
+                _userImage = NSImage(data: ui)
+            #endif
         }
     }
     /**
