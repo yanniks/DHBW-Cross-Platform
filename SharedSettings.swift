@@ -8,7 +8,11 @@
 // This class is supposed to replace the def. variable as good as possible. The Code looks prettier and it's easier to access varaibles stored over here.
 //
 
-import Foundation
+#if os(iOS)
+    import UIKit
+#elseif os(macOS)
+    import Cocoa
+#endif
 import KeychainSwift
 
 enum DHBWSettingsKeys : String {
@@ -16,7 +20,7 @@ enum DHBWSettingsKeys : String {
 }
 
 private enum DHBWPrivateSettingsKeys : String {
-    case lehreUsername = "DHBW_lehreUsername", lehrePassword = "DHBW_lehrePassword", course = "DHBW_course", mailServerUrl = "DHBW_mailServerUrl", mailServerPort = "DHBW_mailServerPort", baseJsonUrl = "DHBW_baseJsonUrl", samlLoginUrl = "DHBW_samlLoginUrl", ownCloudServerUrl = "DHBW_ownCloudServerUrl"
+    case lehreUsername = "DHBW_lehreUsername", lehrePassword = "DHBW_lehrePassword", course = "DHBW_course", mailServerUrl = "DHBW_mailServerUrl", mailServerPort = "DHBW_mailServerPort", baseJsonUrl = "DHBW_baseJsonUrl", samlLoginUrl = "DHBW_samlLoginUrl", ownCloudServerUrl = "DHBW_ownCloudServerUrl", userImage = "DHBW_userImage"
 }
 
 /**
@@ -34,6 +38,12 @@ class SharedSettings {
     private var _baseJsonUrl = "https://dhbw-appdb.azurewebsites.net/?kurs="
     private var _samlLoginUrl = "https://saml.dhbw-stuttgart.de/idp/Authn/UserPassword"
     private var _ownCloudServerUrl = "https://owncloud.dhbw-stuttgart.de"
+    
+    #if os(iOS)
+    private var _userImage : UIImage?
+    #elseif os(macOS)
+    private var _userImage : NSImage?
+    #endif
     
     private var _keychain = KeychainSwift()
     
@@ -83,6 +93,22 @@ class SharedSettings {
         }
         get {
             return _lehreUsername + "@lehre.dhbw-stuttgart.de"
+        }
+    }
+    /**
+    Returns the users image stored on Moodle
+     */
+    public var userImage : UIImage? {
+        set (newVal) {
+            _userImage = newVal
+            if let newVal = newVal {
+                def.set(UIImagePNGRepresentation(newVal), forKey: DHBWPrivateSettingsKeys.userImage.rawValue)
+            } else {
+                def.removeObject(forKey: DHBWPrivateSettingsKeys.userImage.rawValue)
+            }
+        }
+        get {
+            return _userImage
         }
     }
     /**
@@ -180,6 +206,9 @@ class SharedSettings {
         }
         if let sl = def.string(forKey: DHBWPrivateSettingsKeys.samlLoginUrl.rawValue) {
             _samlLoginUrl = sl
+        }
+        if let ui = def.object(forKey: DHBWPrivateSettingsKeys.userImage.rawValue) as? Data {
+            _userImage = UIImage(data: ui)
         }
     }
     /**
