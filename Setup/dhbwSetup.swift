@@ -87,8 +87,9 @@ class dhbwSetup {
     }
 }
 
-enum CredentialValidationError: Error {
+public enum CredentialValidationError: Error {
     case invalidUsername
     case wrongCredentials
     case unknownError
+    case success
 }
