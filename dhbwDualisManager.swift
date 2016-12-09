@@ -164,6 +164,10 @@ public class dhbwDualisManager {
                 completionHandler(dualisExamCallback(success: false))
                 return
             }
+            if result.range(of: "<select id=\"semester\" name=\"semester\"") == nil {
+                completionHandler(dualisExamCallback(success: false))
+                return
+            }
             let semestersHtml = result.components(separatedBy: "<select id=\"semester\" name=\"semester\"")[1].components(separatedBy: "</select>")[0]
             var semesters = [ String : String ]()
             var semComps = semestersHtml.components(separatedBy: "<option value=")
