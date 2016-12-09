@@ -16,7 +16,13 @@ public class dhbwDualisManager {
             
         }
         static var dualisHome = ""
-        static var dualisExamResults = ""
+        static var dualisExamResultsBase = ""
+        static var dualisExamResults: String {
+            if let semesterCode = dhbwDualisManager.semesters[dhbwDualisManager.selectedSemester] {
+                return dualisInternalUrls.dualisExamResultsBase + ",-N" + semesterCode
+            }
+            return dualisInternalUrls.dualisExamResultsBase
+        }
         static var dualisSchedule = ""
     }
     public class dualisUserInformation {
@@ -26,14 +32,28 @@ public class dhbwDualisManager {
         public static var dualisName = ""
     }
     
-    private static var dualisUrl = "https://dualis.dhbw.de"
+    public static var dualisUrl = "https://dualis.dhbw.de"
     private static var dualisAuthenticated = false
-    private static var dualisLoginUrl: String {
+    private static var _semester : String? = nil
+    private static var resultCH : ((dualisExamCallback) -> Void)? = nil
+    public static var dualisScriptUrl: String {
         return dhbwDualisManager.dualisUrl + "/scripts/mgrqcgi"
     }
     public static var isAuthenticated: Bool {
         return dualisAuthenticated
     }
+    public static var selectedSemester : String {
+        set (newSemester) {
+            _semester = newSemester
+            if let resultCH = dhbwDualisManager.resultCH {
+                dhbwDualisManager.examResults(completionHandler: resultCH)
+            }
+        }
+        get {
+            return _semester ?? ""
+        }
+    }
+    public static var semesters = [ String : String ]()
     public static func login(completionHandler: @escaping (CredentialValidationError) -> Void) {
         Alamofire.request(dhbwDualisManager.dualisUrl).responseString { response in
             guard var responseString = response.result.value else {
@@ -81,7 +101,7 @@ public class dhbwDualisManager {
         postData["browser"] = ""
         postData["platform"] = ""
         
-        Alamofire.request(dhbwDualisManager.dualisLoginUrl, method: .post, parameters: postData, encoding: URLEncoding.httpBody).responseString { loginResult in
+        Alamofire.request(dhbwDualisManager.dualisScriptUrl, method: .post, parameters: postData, encoding: URLEncoding.httpBody).responseString { loginResult in
             guard let headerFields = loginResult.response?.allHeaderFields else {
                 completionHandler(.unknownError)
                 return
@@ -118,7 +138,7 @@ public class dhbwDualisManager {
                             if dualisUrl.range(of: "MLSSTART") != nil {
                                 dualisInternalUrls.dualisHome = dhbwDualisManager.dualisUrl + dualisUrl
                             } else if dualisUrl.range(of: "COURSERESULTS") != nil {
-                                dualisInternalUrls.dualisExamResults = dhbwDualisManager.dualisUrl + dualisUrl
+                                dualisInternalUrls.dualisExamResultsBase = dhbwDualisManager.dualisUrl + dualisUrl
                             } else if dualisUrl.range(of: "SCHEDULER") != nil {
                                 dualisInternalUrls.dualisSchedule = dhbwDualisManager.dualisUrl + dualisUrl
                             }
@@ -135,6 +155,10 @@ public class dhbwDualisManager {
         if !dhbwDualisManager.dualisAuthenticated {
             fatalError("Not authenticated on Dualis!")
         }
+        if dhbwDualisManager._semester != nil && !dhbwDualisManager.semesters.keys.contains(dhbwDualisManager.selectedSemester) {
+            fatalError("Semester doesn't exist!")
+        }
+        dhbwDualisManager.resultCH = completionHandler
         Alamofire.request(dualisInternalUrls.dualisExamResults).responseString(encoding: String.Encoding.utf8) { response in
             guard let result = response.result.value else {
                 completionHandler(dualisExamCallback(success: false))
@@ -147,8 +171,12 @@ public class dhbwDualisManager {
             for component in semComps {
                 let id = component.components(separatedBy: "\"")[1]
                 let name = component.components(separatedBy: ">")[1].components(separatedBy: "<")[0]
+                if component.range(of: "selected") != nil {
+                    dhbwDualisManager._semester = name
+                }
                 semesters[name] = id
             }
+            dhbwDualisManager.semesters = semesters
             
             let unitsHtml = result.components(separatedBy: "<table class=\"nb list\">")[1].components(separatedBy: "</table>")[0]
             var units = [ dualisUnit ]()
