@@ -38,7 +38,9 @@ class SharedSettings {
     private var _baseJsonUrl = "https://dhbw-appdb.azurewebsites.net/?kurs="
     private var _samlLoginUrl = "https://saml.dhbw-stuttgart.de/idp/Authn/UserPassword"
     private var _ownCloudServerUrl = "https://owncloud.dhbw-stuttgart.de"
+    #if DHMainApp
     private var _tabbarOrder = [ Int : TabbarItemOrder ]()
+    #endif
     
     #if os(iOS)
     private var _userImage : UIImage?
@@ -60,6 +62,7 @@ class SharedSettings {
             return _lehreUsername
         }
     }
+    #if DHMainApp
     /**
      Returns the dictionary used to set the users Tabbar item order
      */
@@ -77,6 +80,7 @@ class SharedSettings {
             return _tabbarOrder
         }
     }
+    #endif
     /**
      Stores the URL of the ownCloud instance
      */
@@ -115,8 +119,8 @@ class SharedSettings {
     }
     #if os(iOS)
     /**
-    Returns the users image stored on Moodle
-    */
+     Returns the users image stored on Moodle
+     */
     public var userImage : UIImage? {
         set (newVal) {
             _userImage = newVal
@@ -222,6 +226,7 @@ class SharedSettings {
     }
     
     private init() {
+        _keychain.accessGroup = "RZ6J6Q7T5S.de.yanniks.DHBWStuttgart"
         _keychain.synchronizable = true
         if let lu = _keychain.get(DHBWPrivateSettingsKeys.lehreUsername.rawValue) {
             _lehreUsername = lu
@@ -244,13 +249,15 @@ class SharedSettings {
         if let sl = def.string(forKey: DHBWPrivateSettingsKeys.samlLoginUrl.rawValue) {
             _samlLoginUrl = sl
         }
-        if let to = def.object(forKey: DHBWPrivateSettingsKeys.tabbarOrder.rawValue) as? [ String : String ] {
-            var save = [ Int : TabbarItemOrder ]()
-            for val in to {
-                save[Int(val.key)!] = TabbarItemOrder(rawValue: val.value)
+        #if DHMainApp
+            if let to = def.object(forKey: DHBWPrivateSettingsKeys.tabbarOrder.rawValue) as? [ String : String ] {
+                var save = [ Int : TabbarItemOrder ]()
+                for val in to {
+                    save[Int(val.key)!] = TabbarItemOrder(rawValue: val.value)
+                }
+                _tabbarOrder = save
             }
-            _tabbarOrder = save
-        }
+        #endif
         if let ui = def.object(forKey: DHBWPrivateSettingsKeys.userImage.rawValue) as? Data {
             #if os(iOS)
                 _userImage = UIImage(data: ui)
