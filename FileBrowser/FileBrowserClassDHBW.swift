@@ -25,7 +25,7 @@
                     }
                     if let fileName = file.fileName, let directory = file.filePath {
                         oFile.directory = directory
-                        oFile.link = directory + fileName.removingPercentEncoding!
+                        oFile.link = directory.removingPercentEncoding! + fileName.removingPercentEncoding!
                         oFile.title = fileName.removingPercentEncoding!
                     }
                     if file.isDirectory && file.fileName != nil {
