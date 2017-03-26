@@ -66,23 +66,35 @@ public class dhbwDualisManager {
                 return
             }
             let url = dhbwDualisManager.dualisUrl + responseString.components(separatedBy: "<meta http-equiv=\"refresh\" content=\"0; URL=")[1].components(separatedBy: "\"")[0]
-            completionHandler(dualisLoginCallback(status: .success, progress: 0.2))
-            dhbwDualisManager.setToken(url: url, completionHandler: completionHandler)
+            Alamofire.request(url).responseString { string in
+                guard var respString = string.result.value else {
+                    completionHandler(dualisLoginCallback(status: .unknownError, progress: 1))
+                    return
+                }
+                respString = responseString.replacingOccurrences(of: "\0", with: "")
+                if respString.range(of: "<meta http-equiv=\"refresh\" content=\"0; URL=") == nil {
+                    completionHandler(dualisLoginCallback(status: .unknownError, progress: 1))
+                    return
+                }
+                let url = dhbwDualisManager.dualisUrl + respString.components(separatedBy: "<meta http-equiv=\"refresh\" content=\"0; URL=")[1].components(separatedBy: "\"")[0]
+                completionHandler(dualisLoginCallback(status: .success, progress: 0.2))
+                dhbwDualisManager.setToken(url: url, completionHandler: completionHandler)
+            }
             //dhbwDualisManager.authenticate()
         }
     }
     private static func setToken(url loginUrl: String, completionHandler: @escaping (dualisLoginCallback) -> Void) {
         Alamofire.request(loginUrl).responseString { response in
-            guard let headerFields = response.response?.allHeaderFields else {
+            guard let respString = response.result.value else {
                 completionHandler(dualisLoginCallback(status: .unknownError, progress: 1))
                 return
             }
-            guard let refreshValue = headerFields["REFRESH"] as? String else {
+            if respString.range(of: "<meta http-equiv=\"refresh\" content=\"0;URL=") == nil {
                 completionHandler(dualisLoginCallback(status: .unknownError, progress: 1))
                 return
             }
             completionHandler(dualisLoginCallback(status: .success, progress: 0.4))
-            let newUrl = dhbwDualisManager.dualisUrl + refreshValue.replacingOccurrences(of: "0;URL=", with: "")
+            let newUrl = dhbwDualisManager.dualisUrl + respString.components(separatedBy: "<meta http-equiv=\"refresh\" content=\"0;URL=")[1].components(separatedBy: "\"")[0]
             Alamofire.request(newUrl).responseString { response2 in
                 if response2.result.isSuccess {
                     completionHandler(dualisLoginCallback(status: .success, progress: 0.6))
@@ -118,15 +130,15 @@ public class dhbwDualisManager {
             let newUrl = dhbwDualisManager.dualisUrl + refreshValue.replacingOccurrences(of: "0; URL=", with: "")
             completionHandler(dualisLoginCallback(status: .success, progress: 0.8))
             Alamofire.request(newUrl).responseString { response in
-                guard let headerFields = response.response?.allHeaderFields else {
+                guard let respString = response.result.value else {
                     completionHandler(dualisLoginCallback(status: .unknownError, progress: 1))
                     return
                 }
-                guard let refreshValue2 = headerFields["REFRESH"] as? String else {
+                if respString.range(of: "<meta http-equiv=\"refresh\" content=\"0;URL=") == nil {
                     completionHandler(dualisLoginCallback(status: .unknownError, progress: 1))
                     return
                 }
-                let newUrl2 = dhbwDualisManager.dualisUrl + refreshValue2.replacingOccurrences(of: "0;URL=", with: "")
+                let newUrl2 = dhbwDualisManager.dualisUrl + respString.components(separatedBy: "<meta http-equiv=\"refresh\" content=\"0;URL=")[1].components(separatedBy: "\"")[0]
                 completionHandler(dualisLoginCallback(status: .success, progress: 0.9))
                 Alamofire.request(newUrl2).responseString { response2 in
                     if response2.result.isSuccess {
@@ -134,11 +146,11 @@ public class dhbwDualisManager {
                             completionHandler(dualisLoginCallback(status: .unknownError, progress: 1))
                             return
                         }
-                        if htmlSite.range(of: " navLink\" href=\"") == nil {
+                        if htmlSite.range(of: " navLink \" href=\"") == nil {
                             completionHandler(dualisLoginCallback(status: .unknownError, progress: 1))
                             return
                         }
-                        var comps = htmlSite.components(separatedBy: " navLink\" href=\"")
+                        var comps = htmlSite.components(separatedBy: " navLink \" href=\"")
                         comps.remove(at: 0)
                         for url in comps {
                             let dualisUrl = url.components(separatedBy: "\"")[0].removingHtmlEntities!
