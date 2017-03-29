@@ -20,7 +20,7 @@ enum DHBWSettingsKeys : String {
 }
 
 private enum DHBWPrivateSettingsKeys : String {
-    case lehreUsername = "DHBW_lehreUsername", lehrePassword = "DHBW_lehrePassword", course = "DHBW_course", mailServerUrl = "DHBW_mailServerUrl", mailServerPort = "DHBW_mailServerPort", baseJsonUrl = "DHBW_baseJsonUrl", samlLoginUrl = "DHBW_samlLoginUrl", ownCloudServerUrl = "DHBW_ownCloudServerUrl", userImage = "DHBW_userImage", tabbarOrder = "DHBW_tabbarOrder"
+    case lehreUsername = "DHBW_lehreUsername", lehrePassword = "DHBW_lehrePassword", course = "DHBW_course", mailServerUrl = "DHBW_mailServerUrl", mailServerPort = "DHBW_mailServerPort", baseWebsocketUrl = "DHBW_baseWebsocketUrl", samlLoginUrl = "DHBW_samlLoginUrl", ownCloudServerUrl = "DHBW_ownCloudServerUrl", userImage = "DHBW_userImage", tabbarOrder = "DHBW_tabbarOrder"
 }
 
 /**
@@ -35,7 +35,7 @@ class SharedSettings {
     private var _mailServerPort = 993
     private var _mailServerUrl = "lehre-mail.dhbw-stuttgart.de"
     private var _kurs = ""
-    private var _baseJsonUrl = "https://dhbw-appdb.azurewebsites.net/?kurs="
+    private var _baseWebsocketUrl = "http://localhost:3000"
     private var _samlLoginUrl = "https://saml.dhbw-stuttgart.de/idp/Authn/UserPassword"
     private var _ownCloudServerUrl = "https://owncloud.dhbw-stuttgart.de"
     #if DHMainApp
@@ -167,26 +167,14 @@ class SharedSettings {
     /**
      Returns the base URL for fetching the calendars in JSON format.
      */
-    private var baseJsonUrl : String {
+    public var baseWebsocketUrl : String {
         set (newVal) {
-            _baseJsonUrl = newVal
-            def.set(newVal, forKey: DHBWPrivateSettingsKeys.baseJsonUrl.rawValue)
+            _baseWebsocketUrl = newVal
+            def.set(newVal, forKey: DHBWPrivateSettingsKeys.baseWebsocketUrl.rawValue)
         }
         get {
-            return _baseJsonUrl
+            return _baseWebsocketUrl
         }
-    }
-    /**
-     Returns the URL for fetching the list of available courses.
-     */
-    public var setupJsonUrl : String {
-        return _baseJsonUrl + "setup"
-    }
-    /**
-     Returns the URL for fetching the calendar for the specified course.
-     */
-    public var jsonUrl : String {
-        return baseJsonUrl + kurs
     }
     /**
      Returns the course the user specified in the setup process.
@@ -243,8 +231,8 @@ class SharedSettings {
         if let cs = def.string(forKey: DHBWPrivateSettingsKeys.course.rawValue) {
             _kurs = cs
         }
-        if let bu = def.string(forKey: DHBWPrivateSettingsKeys.baseJsonUrl.rawValue) {
-            _baseJsonUrl = bu
+        if let bu = def.string(forKey: DHBWPrivateSettingsKeys.baseWebsocketUrl.rawValue) {
+            _baseWebsocketUrl = bu
         }
         if let sl = def.string(forKey: DHBWPrivateSettingsKeys.samlLoginUrl.rawValue) {
             _samlLoginUrl = sl

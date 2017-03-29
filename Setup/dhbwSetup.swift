@@ -14,23 +14,9 @@
 import Alamofire
 
 class dhbwSetup {
-    static func fetchCourseList(callback : @escaping ((Error?, [ String : [ String : String ] ]?) -> Void)) {
-        #if os(iOS)
-            UIApplication.shared.isNetworkActivityIndicatorVisible = true
-        #endif
-        Alamofire.request(SharedSettings.shared.setupJsonUrl).responseJSON { response in
-            #if os(iOS)
-                UIApplication.shared.isNetworkActivityIndicatorVisible = false
-            #endif
-            guard let jsonValues = response.result.value as? [ String : [ String : String ] ] else {
-                if let error = response.result.error {
-                    callback(error, nil)
-                } else {
-                    callback(nil,  nil)
-                }
-                return
-            }
-            callback(nil, jsonValues)
+    static func fetchCourseList(callback : @escaping ((Error?, [ Dhbw_Servercommunication_Course ]?) -> Void)) {
+        dhbwClassesUpdate.updateCourses { courses, error in
+            callback(error, courses)
         }
     }
     static func validateCredentials(username: String, password: String, callback : @escaping ((CredentialValidationError?) -> Void)) {
@@ -69,21 +55,9 @@ class dhbwSetup {
     }
     static func setNewCourse(_ course: String, callback: @escaping ((Error?) -> Void)) {
         SharedSettings.shared.kurs = course
-        #if os(iOS)
-            UIApplication.shared.isNetworkActivityIndicatorVisible = true
-        #endif
-        URLSession.shared.dataTask(with: URL(string: SharedSettings.shared.jsonUrl)!, completionHandler: {(data,response,error) -> Void in
-            #if os(iOS)
-                UIApplication.shared.isNetworkActivityIndicatorVisible = false
-            #endif
-            guard let data = data else {
-                callback(error)
-                return
-            }
-            let responseStr = String(data: data, encoding: String.Encoding.utf8)
-            def.set(responseStr, forKey: "json")
-            callback(nil)
-        }).resume()
+        dhbwClassesUpdate.updateLectures { error in
+            callback(error)
+        }
     }
 }
 
