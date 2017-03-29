@@ -35,7 +35,7 @@ class dhbwClassesUpdate {
     public static func createSocketConnection() {
         if socket.status == .connected { return }
         socket.connect()
-        socket.on("connect") {data, ack in
+        socket.on("connect") { data, ack in
             socket.on(dhbwSocketUpdate.receive.lectures.rawValue, callback: receiveLectures)
             socket.on(dhbwSocketUpdate.receive.courses.rawValue, callback: receiveCourses)
         }
@@ -53,6 +53,13 @@ class dhbwClassesUpdate {
     Sends the update request to the webserver with replies with the current list of courses.
      */
     public static func updateCourses(callback: ((_ courses: [ Dhbw_Servercommunication_Course ]?, _ error: Error?) -> Void)?) {
+        if (socket.status != .connected) {
+            socket.on("connect") { data, ack in
+                callbackCourses = callback
+                socket.emit(dhbwSocketUpdate.send.listCourses.rawValue, with: [])
+            }
+            return
+        }
         callbackCourses = callback
         socket.emit(dhbwSocketUpdate.send.listCourses.rawValue, with: [])
     }
