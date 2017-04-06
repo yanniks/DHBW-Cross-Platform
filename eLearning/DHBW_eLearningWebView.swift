@@ -10,6 +10,7 @@
     import UIKit
     import MBProgressHUD
     import QuickLook
+    import SafariServices
 #elseif os(macOS)
     import Cocoa
     import ProgressKit
@@ -68,14 +69,14 @@ class DHBW_eLearningWebView: DHViewController, WKNavigationDelegate {
     }
     #if os(iOS)
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        UIApplication.shared.isNetworkActivityIndicatorVisible = false
-        DHErrorPresenter.add(viewController: self, error: error)
+    UIApplication.shared.isNetworkActivityIndicatorVisible = false
+    DHErrorPresenter.add(viewController: self, error: error)
     }
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-        UIApplication.shared.isNetworkActivityIndicatorVisible = true
+    UIApplication.shared.isNetworkActivityIndicatorVisible = true
     }
     override func viewWillAppear(_ animated: Bool) {
-        BarButtonSettings.shared(controller: navigationController).setbutton(self)
+    BarButtonSettings.shared(controller: navigationController).setbutton(self)
     }
     #elseif os(macOS)
     override func viewDidAppear() {
@@ -144,7 +145,9 @@ class DHBW_eLearningWebView: DHViewController, WKNavigationDelegate {
                             let prevcontroller = QLPreviewController()
                             prevcontroller.delegate = self
                             prevcontroller.dataSource = self
-                            self.present(prevcontroller, animated: true, completion: nil)
+                            DispatchQueue.main.async {
+                                self.present(prevcontroller, animated: true, completion: nil)
+                            }
                         }
                     } else if let error = response.error {
                         DHErrorPresenter.add(viewController: self, error: error)
@@ -165,8 +168,19 @@ class DHBW_eLearningWebView: DHViewController, WKNavigationDelegate {
                         }
                     #endif
             }
-        } else {
+        } else if navigationAction.request.url?.absoluteString.range(of: "dhbw-stuttgart.de") != nil {
             decisionHandler(WKNavigationActionPolicy.allow)
+        } else {
+            guard let url = navigationAction.request.url else {
+                return
+            }
+            #if os(macOS)
+                NSWorkspace.shared().open(url)
+            #elseif os(iOS)
+                let vc = SFSafariViewController(url: url)
+                present(vc, animated: true, completion: nil)
+            #endif
+            decisionHandler(WKNavigationActionPolicy.cancel)
         }
     }
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
