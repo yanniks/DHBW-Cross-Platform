@@ -32,7 +32,7 @@ extension DHBW_eLearningWebView: QLPreviewControllerDataSource, QLPreviewControl
     @available(iOS 4.0, *)
     public func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
         guard let downloadedFile = downloadedFile else {
-            return URL(string: "") as! QLPreviewItem
+            return URL(string: "")! as QLPreviewItem
         }
         return downloadedFile as QLPreviewItem
     }
