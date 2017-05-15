@@ -35,7 +35,7 @@ class SharedSettings {
     private var _mailServerPort = 993
     private var _mailServerUrl = "lehre-mail.dhbw-stuttgart.de"
     private var _kurs = ""
-    private var _baseWebsocketUrl = "https://pdf2text.yanniks.one"
+    private var _baseWebsocketUrl = "https://dhbwservices.yanniks.cloud"
     private var _samlLoginUrl = "https://saml.dhbw-stuttgart.de/idp/Authn/UserPassword"
     private var _ownCloudServerUrl = "https://owncloud.dhbw-stuttgart.de"
     #if DHMainApp
