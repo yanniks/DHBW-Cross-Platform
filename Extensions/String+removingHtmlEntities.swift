@@ -17,20 +17,7 @@ public extension String {
         guard let encodedData = self.data(using: .utf8) else {
             return self
         }
-        
         var returnValue = self
-        
-        let attributedOptions: [String : Any] = [
-            NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType,
-            NSCharacterEncodingDocumentAttribute: String.Encoding.utf8.rawValue
-        ]
-        
-        do {
-            let attributedString = try NSAttributedString(data: encodedData, options: attributedOptions, documentAttributes: nil)
-            returnValue = attributedString.string
-        } catch {
-            print("Error: \(error)")
-        }
         return returnValue
     }
 }

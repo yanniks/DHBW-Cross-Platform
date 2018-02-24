@@ -157,7 +157,7 @@ public class dhbwDualisManager {
                             if dualisUrl.range(of: "MLSSTART") != nil {
                                 dualisInternalUrls.dualisHome = dhbwDualisManager.dualisUrl + dualisUrl
                             } else if dualisUrl.range(of: "COURSERESULTS") != nil {
-                                dualisInternalUrls.dualisExamResultsBase = dhbwDualisManager.dualisUrl + dualisUrl
+                                dualisInternalUrls.dualisExamResultsBase = dhbwDualisManager.dualisUrl + dualisUrl.replacingOccurrences(of: "&amp;", with: "&")
                             } else if dualisUrl.range(of: "SCHEDULER") != nil {
                                 dualisInternalUrls.dualisSchedule = dhbwDualisManager.dualisUrl + dualisUrl
                             }

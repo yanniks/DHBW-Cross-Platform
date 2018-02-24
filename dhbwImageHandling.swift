@@ -35,8 +35,8 @@ class dhbwImageHandling {
                     return
                 }
                 var dataSet = [ String : String ]()
-                dataSet["RelayState"] = responseString.components(separatedBy: "name=\"RelayState\" value=\"")[1].components(separatedBy: "\"")[0].removingHtmlEntities
-                dataSet["SAMLResponse"] = responseString.components(separatedBy: "name=\"SAMLResponse\" value=\"")[1].components(separatedBy: "\"")[0].removingHtmlEntities
+                dataSet["RelayState"] = responseString.components(separatedBy: "name=\"RelayState\" value=\"")[1].components(separatedBy: "\"")[0]//.removingHtmlEntities
+                dataSet["SAMLResponse"] = responseString.components(separatedBy: "name=\"SAMLResponse\" value=\"")[1].components(separatedBy: "\"")[0]//.removingHtmlEntities
                 let action = responseString.components(separatedBy: "<form action=\"")[1].components(separatedBy: "\"")[0].removingHtmlEntities
                 guard let urlAction = action else {
                     return

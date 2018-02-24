@@ -8,8 +8,7 @@
 
 import Foundation
 import SwiftProtobuf
-import SocketIO
-
+import Alamofire
 
 private enum dhbwSocketUpdate {
     enum send: String {
@@ -23,7 +22,11 @@ private enum dhbwSocketUpdate {
 class dhbwClassesUpdate {
     private static var callbackLectures : ((_ error: Error?) -> Void)? = nil
     private static var callbackCourses : ((_ courses: [ Dhbw_Servercommunication_Course ]?, _ error: Error?) -> Void)? = nil
-    private static let socket = SocketIOClient(socketURL: URL(string: SharedSettings.shared.baseWebsocketUrl)!)
+    
+    private static var headers: HTTPHeaders = {
+        return [ "Accept" : "application/protobuf" ]
+    }()
+
     /**
      This class is not supposed to be initialized
      */
@@ -33,45 +36,48 @@ class dhbwClassesUpdate {
     Initialize the socket connection required for all other functions in this class.
     */
     public static func createSocketConnection() {
-        if socket.status == .connected { return }
-        socket.connect()
-        socket.on("connect") { data, ack in
-            socket.on(dhbwSocketUpdate.receive.lectures.rawValue, callback: receiveLectures)
-            socket.on(dhbwSocketUpdate.receive.courses.rawValue, callback: receiveCourses)
-        }
+        // DEPRECATED
     }
     /**
     Sends the update request to the webserver which replies with new payload if available.
      */
     public static func updateLectures(callback: ((_ error: Error?) -> Void)?) {
         // Send update request
+        let url = SharedSettings.shared.baseWebsocketUrl + "/lectures?course=" + SharedSettings.shared.kurs
         callbackLectures = callback
-        socket.emit(dhbwSocketUpdate.send.requestLectures.rawValue, with: [SharedSettings.shared.kurs])
+
+        Alamofire.request(url, headers: headers).responseData { response in
+            self.receiveLectures(response.data)
+        }
     }
     
     /**
     Sends the update request to the webserver with replies with the current list of courses.
      */
     public static func updateCourses(callback: ((_ courses: [ Dhbw_Servercommunication_Course ]?, _ error: Error?) -> Void)?) {
-        if (socket.status != .connected) {
-            socket.on("connect") { data, ack in
-                callbackCourses = callback
-                socket.emit(dhbwSocketUpdate.send.listCourses.rawValue, with: [])
-            }
-            return
-        }
         callbackCourses = callback
-        socket.emit(dhbwSocketUpdate.send.listCourses.rawValue, with: [])
+        var url = URL(string: SharedSettings.shared.baseWebsocketUrl)!
+        url.appendPathComponent("courses")
+        Alamofire.request(url, headers: headers).responseData { response in
+            print(response.error)
+            
+            self.receiveCourses(response.data)
+        }
     }
 
     /**
     Callback for incoming course lists
     */
-    private static func receiveCourses(_ payload: [Any], ack: SocketAckEmitter) {
+    private static func receiveCourses(_ data: Data?) {
         // Convert received payload into Data object
-        if let data = payload[0] as? Data {
-            let response = try? Dhbw_Servercommunication_ServerCourseResponse(serializedData: data)
-            callbackCourses?(response?.courses, nil)
+        if let data = data {
+            print(data)
+            do {
+                callbackCourses?(try Dhbw_Servercommunication_ServerCourseResponse(serializedData: data).courses, nil)
+            } catch let error {
+                print(error.localizedDescription)
+                callbackCourses?([], error)
+            }
             callbackCourses = nil
         }
     }
@@ -79,12 +85,12 @@ class dhbwClassesUpdate {
     /**
     Callback for incoming lecture schedules
     */
-    private static func receiveLectures(_ payload: [Any], ack: SocketAckEmitter) {
+    private static func receiveLectures(_ data: Data?) {
         // Array to save data in
         var arrayLectures = [ [ String : String ] ]()
         
         // Convert received payload to Data object
-        if let data = payload[0] as? Data {
+        if let data = data {
             do {
                 // Try to serialize it to ServerLectureResponse object
                 let response = try Dhbw_Servercommunication_ServerLectureResponse(serializedData: data)
@@ -98,9 +104,6 @@ class dhbwClassesUpdate {
                     }
                     if lecture.end != "" {
                         dictionarySingleLecture[Vorlesungen.end.rawValue] = lecture.end
-                    }
-                    if lecture.date != "" {
-                        dictionarySingleLecture[Vorlesungen.date.rawValue] = lecture.date
                     }
                     if lecture.location != "" {
                         dictionarySingleLecture[Vorlesungen.location.rawValue] = lecture.location
